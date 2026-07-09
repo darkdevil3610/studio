@@ -30,10 +30,11 @@ Unlike static gradient generators, Mesha treats the mesh lattice as a sculptable
 - **Precision tools** — X/Y position inputs, color picker, tangent actions (Minimize, Maximize, Twist, Align, Space Evenly)
 
 ### Animation & Playback
-- **Live drift** — organic per-node motion with speed/intensity controls
+- **Live drift** — organic per-node motion with speed/intensity controls; boundary nodes stay anchored so the surface never pulls off the artboard edge
+- **Hue flow** — node hues travel around the color wheel while playing, each at a slightly different rate, so the palette breathes through the surface
 - **Cursor physics** — nodes attract or repel when you hover
 - **Playback controls** — play, pause, reverse, speed scrubbing
-- **Grain frozen on pause** — effects stop when you pause, so the gradient stays static for precise editing
+- **Still when paused** — drift settles every node back to its rest position and grain/color freeze, so a paused document is exactly the designed document
 
 ### Color Interpolation
 - **RGB, Linear RGB, OKLab, LCH** — switch color spaces mid-design
@@ -67,7 +68,7 @@ Each preset thumbnail is rasterized from the actual mesh data, so what you see i
 
 ### Export
 - **Raster images** — PNG, JPG, WebP at up to 8192×8192px (exact offscreen re-render of the GPU pipeline)
-- **Video** — WebM or MP4, record from the live artboard at any duration (3s–10s+)
+- **Video up to 4K** — 1080p / 1440p / 4K / Square at 30 or 60 fps, 3–20 s clips; the animation renders offscreen at full resolution (drift, hue flow and grain all move) and encodes at a bitrate matched to the pixel rate, so 4K output stays crisp
 - **Code** — CSS gradients, Tailwind config, React component, SVG path, vanilla HTML
 - **Project files** — `.mesha` JSON format, re-import to continue editing
 
