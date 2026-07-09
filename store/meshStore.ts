@@ -48,12 +48,15 @@ export function defaultDoc(): MeshDoc {
       backgroundColor: "#0a0a12",
     },
     animation: {
-      // Fully static by default — the gradient only changes when you drag a
-      // control point. Raising Drift + Play opts into motion when wanted.
+      // Loads still (nothing plays until asked), but Drift and Hue flow
+      // sit ready so pressing Play immediately sets the whole surface in
+      // motion — mesh breathing and hues travelling. Pausing settles every
+      // node back to rest, so the designed document is what you edit.
       playing: false,
       reversed: false,
       speed: 1,
-      amount: 0,
+      amount: 0.65,
+      hueFlow: 0.5,
       mouseMode: "none",
       mouseStrength: 0.5,
     },

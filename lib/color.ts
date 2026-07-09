@@ -163,6 +163,19 @@ export function hslToHex(h: number, s: number, l: number): string {
 }
 
 /**
+ * Rotate a color around the hue wheel by `turns` (1 = full revolution),
+ * preserving saturation and lightness. Near-neutral colors pass through
+ * untouched so whites/blacks/grays keep a design's structure while the
+ * chromatic nodes travel.
+ */
+export function shiftHue(hex: string, turns: number): string {
+  if (!turns) return hex;
+  const [h, s, l] = rgbToHsl(hexToRgb(hex));
+  if (s < 0.04) return hex;
+  return hslToHex(h + turns, s, l);
+}
+
+/**
  * Generate a harmonious random palette: pick a base hue, then spread
  * the rest across an analogous arc with one complementary accent.
  */

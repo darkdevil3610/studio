@@ -9,7 +9,7 @@
  */
 
 import type { MeshDoc } from "@/types/gradient";
-import { hexToBlendSpace } from "./color";
+import { hexToBlendSpace, shiftHue } from "./color";
 import { driftOffset } from "./noise";
 
 export const MAX_NODES = 144; // 12 × 12 lattice cap
@@ -34,14 +34,24 @@ export function nodeTargetAt(
   mouse?: MouseState
 ): { x: number; y: number } {
   const node = doc.nodes[i];
-  const amp = driftAmplitude(doc);
+  // Drift only while playing: pausing lets every node settle back to its
+  // exact rest position, so a paused document is the designed document.
+  const amp = doc.animation.playing ? driftAmplitude(doc) : 0;
   let x = node.position.x;
   let y = node.position.y;
 
   if (amp > 0) {
+    // Boundary nodes stay near-anchored so the surface never pulls away
+    // from the artboard edge and exposes the background; interior nodes
+    // carry the full breathing motion.
+    const r = Math.floor(i / doc.cols);
+    const c = i % doc.cols;
+    const boundary =
+      r === 0 || r === doc.rows - 1 || c === 0 || c === doc.cols - 1;
+    const anchor = boundary ? 0.25 : 1;
     const [nx, ny] = driftOffset(time * 0.16, node.phase + i * 0.013);
-    x += nx * amp;
-    y += ny * amp;
+    x += nx * amp * anchor;
+    y += ny * amp * anchor;
   }
 
   const { mouseMode, mouseStrength } = doc.animation;
@@ -56,6 +66,27 @@ export function nodeTargetAt(
   }
 
   return { x, y };
+}
+
+/** Full hue revolution takes ~24s at hueFlow 1 / speed 1. */
+const FLOW_RATE = 1 / 24;
+
+/**
+ * Pure: a node's blend-space color at a given flow phase (the integral of
+ * the colour-flow rate over played time). Each node travels the hue wheel
+ * at a slightly different rate (seeded by its phase), so the palette
+ * breathes and shifts through the surface instead of rotating as a rigid
+ * block. At flowTime 0 every node shows its exact document color.
+ */
+export function nodeColorAt(
+  doc: MeshDoc,
+  i: number,
+  flowTime: number
+): [number, number, number] {
+  const node = doc.nodes[i];
+  const turns =
+    flowTime !== 0 ? flowTime * FLOW_RATE * (1 + (node.phase - 0.5) * 0.35) : 0;
+  return hexToBlendSpace(shiftHue(node.color, turns), doc.canvas.colorSpace);
 }
 
 /** Snapshot of the evaluated surface, shared with the DOM overlay so the
@@ -80,6 +111,9 @@ class Engine {
   time = Math.random() * 100;
   /** Wall-clock for shader time (grain, distortion flow). */
   shaderTime = 0;
+  /** Hue-travel clock — starts at zero so a fresh document shows its true
+   *  colors, and only advances while playing. */
+  flowTime = 0;
 
   /** Smoothed node positions, rows×cols×2 (artboard uv, y up). */
   readonly nodePos = new Float32Array(MAX_NODES * 2);
@@ -99,10 +133,14 @@ class Engine {
   tick(doc: MeshDoc, dt: number) {
     const { animation } = doc;
     if (animation.playing) {
-      this.time += dt * animation.speed * (animation.reversed ? -1 : 1);
+      const dir = animation.reversed ? -1 : 1;
+      this.time += dt * animation.speed * dir;
       // Shader-time drives film grain and distortion flow; freeze it while
       // paused so a still gradient is genuinely still (no grain shimmer).
       this.shaderTime += dt;
+      // Hue flow integrates its rate per-frame, so the slider acts as a
+      // live speed control and never rotates hues while paused.
+      this.flowTime += dt * animation.speed * dir * (animation.hueFlow ?? 0);
     }
 
     const n = Math.min(doc.nodes.length, MAX_NODES);
@@ -141,7 +179,7 @@ class Engine {
   syncColors(doc: MeshDoc) {
     const n = Math.min(doc.nodes.length, MAX_NODES);
     for (let i = 0; i < n; i++) {
-      const [a, b, c] = hexToBlendSpace(doc.nodes[i].color, doc.canvas.colorSpace);
+      const [a, b, c] = nodeColorAt(doc, i, this.flowTime);
       this.nodeCol[i * 3] = a;
       this.nodeCol[i * 3 + 1] = b;
       this.nodeCol[i * 3 + 2] = c;
@@ -161,14 +199,15 @@ export function fillNodeBuffersAt(
   doc: MeshDoc,
   time: number,
   nodePos: Float32Array,
-  nodeCol: Float32Array
+  nodeCol: Float32Array,
+  flowTime = 0
 ): number {
   const n = Math.min(doc.nodes.length, MAX_NODES);
   for (let i = 0; i < n; i++) {
     const t = nodeTargetAt(doc, i, time);
     nodePos[i * 2] = t.x;
     nodePos[i * 2 + 1] = t.y;
-    const [a, b, c] = hexToBlendSpace(doc.nodes[i].color, doc.canvas.colorSpace);
+    const [a, b, c] = nodeColorAt(doc, i, flowTime);
     nodeCol[i * 3] = a;
     nodeCol[i * 3 + 1] = b;
     nodeCol[i * 3 + 2] = c;

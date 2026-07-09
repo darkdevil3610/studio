@@ -43,6 +43,8 @@ export interface AnimationSettings {
   speed: number;
   /** Drift amplitude, 0–1 (scaled by cell size internally) */
   amount: number;
+  /** Hue-cycle rate, 0–1 — node colors travel the wheel while playing. */
+  hueFlow: number;
   mouseMode: MouseMode;
   /** Strength of cursor attraction/repulsion, 0–1 */
   mouseStrength: number;
