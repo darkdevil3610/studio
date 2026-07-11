@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { GithubIcon, StarIcon } from "@/components/ui/icons";
-import { Button } from "@/components/ui/Button";
 
 export function GitHubStars() {
   const [stars, setStars] = useState<number | null>(null);
@@ -19,22 +18,18 @@ export function GitHubStars() {
   }, []);
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="hidden md:flex"
-      onClick={() => window.open("https://github.com/zoxilsi/studio", "_blank")}
+    <a
+      href="https://github.com/zoxilsi/studio"
+      target="_blank"
+      rel="noopener noreferrer"
       aria-label="GitHub Repository"
+      className="hidden md:inline-flex h-8 items-center gap-1.5 rounded-full border border-glass-border bg-glass-soft px-3 text-muted transition-colors duration-150 hover:bg-hover hover:text-ink"
     >
-      <GithubIcon className="h-4 w-4" />
-      <span className="font-medium">GitHub</span>
+      <GithubIcon className="h-4 w-4 shrink-0" />
+      <StarIcon className="h-3.5 w-3.5 shrink-0" />
       {stars !== null && (
-        <>
-          <span className="w-px h-3.5 bg-glass-border opacity-50 mx-0.5" />
-          <StarIcon className="h-3.5 w-3.5" />
-          <span className="tabular-nums font-mono text-[11px] font-semibold">{stars}</span>
-        </>
+        <span className="tabular-nums font-mono text-[11px] font-semibold">{stars}</span>
       )}
-    </Button>
+    </a>
   );
 }
