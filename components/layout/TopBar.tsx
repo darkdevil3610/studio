@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/icons";
 import { useMeshStore } from "@/store/meshStore";
 import { useUiStore } from "@/store/uiStore";
+import { GitHubStars } from "@/components/ui/GitHubStars";
 
 function MoveTool() {
   const [scope, animateEl] = useAnimate();
@@ -192,6 +193,8 @@ export function TopBar() {
         </Button>
 
         <span className="mx-1.5 hidden h-5 w-px bg-glass-border sm:block" aria-hidden />
+
+        <GitHubStars />
 
         <Magnetic>
           <Button variant="primary" size="sm" aria-label="Open export dialog" title="Export (E)" onClick={() => setExportOpen(true)}>
