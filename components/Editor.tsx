@@ -18,6 +18,7 @@ import { ShortcutsDialog } from "@/components/dialogs/ShortcutsDialog";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useMeshStore } from "@/store/meshStore";
 import { useUiStore } from "@/store/uiStore";
+import { PRESETS } from "@/lib/presets";
 
 const Artboard = dynamic(
   () => import("@/components/canvas/Artboard").then((m) => m.Artboard),
@@ -37,6 +38,13 @@ export function Editor() {
 
   useEffect(() => {
     syncThemeFromDom();
+
+    // Apply Glass Mosaic as the default design on first load.
+    const glassMosaic = PRESETS.find((p) => p.name === "Glass Mosaic");
+    if (glassMosaic) {
+      useMeshStore.getState().applyDoc(glassMosaic.doc);
+    }
+
     // Honor reduced motion: start paused (pressing play still works —
     // user-initiated motion is fine under prefers-reduced-motion).
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
