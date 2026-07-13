@@ -6,7 +6,8 @@
  * while picking so hue survives trips through black/white/gray.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { hexToRgb, rgbToHex, isValidHex } from "@/lib/color";
 import { cn } from "@/lib/utils";
 
@@ -48,10 +49,12 @@ function hsvToHex(h: number, s: number, v: number): string {
 export function ColorField({ label, value, onChange, onCommitStart, className }: ColorFieldProps) {
   const [draft, setDraft] = useState(value);
   const [open, setOpen] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0 });
   const [hsv, setHsv] = useState<[number, number, number]>(() => hexToHsv(value));
   const gestureCommitted = useRef(false);
   const picking = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setDraft(value), [value]);
 
@@ -66,10 +69,49 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
   useEffect(() => {
     if (!open) return;
     const close = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        rootRef.current &&
+        !rootRef.current.contains(target) &&
+        !popoverRef.current?.contains(target)
+      ) {
+        setOpen(false);
+      }
     };
     window.addEventListener("pointerdown", close);
     return () => window.removeEventListener("pointerdown", close);
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      const rect = rootRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const width = 224;
+      const estimatedHeight = 214;
+      const gap = 8;
+      const margin = 12;
+      const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+      const maxTop = Math.max(margin, window.innerHeight - estimatedHeight - margin);
+      const opensBelow = rect.bottom + gap + estimatedHeight <= window.innerHeight - margin;
+      const left = opensBelow ? rect.left : rect.left - width - gap;
+      const top = opensBelow ? rect.bottom + gap : rect.top;
+
+      setPopoverPosition({
+        left: Math.min(Math.max(margin, left), maxLeft),
+        top: Math.min(Math.max(margin, top), maxTop),
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
   }, [open]);
 
   const beginGesture = () => {
@@ -173,12 +215,17 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
         />
       </div>
 
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl border border-glass-border bg-glass p-2.5 shadow-lift backdrop-blur-2xl">
+      {open && createPortal(
+        <div
+          ref={popoverRef}
+          className="fixed z-50 w-56 rounded-xl border border-glass-border bg-glass p-2.5 shadow-lift backdrop-blur-2xl"
+          style={{ left: popoverPosition.left, top: popoverPosition.top }}
+        >
           {/* Saturation / value square */}
           <div
             role="slider"
             aria-label="Saturation and brightness"
+            aria-valuenow={Math.round(v * 100)}
             aria-valuetext={`saturation ${Math.round(s * 100)}%, brightness ${Math.round(v * 100)}%`}
             className="relative h-36 w-full cursor-crosshair touch-none rounded-lg"
             style={{
@@ -197,6 +244,7 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
             <div
               role="slider"
               aria-label="Hue"
+              aria-valuenow={Math.round(h)}
               aria-valuetext={`${Math.round(h)} degrees`}
               className="relative h-3.5 flex-1 cursor-ew-resize touch-none rounded-full"
               style={{
@@ -221,7 +269,8 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
               </svg>
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
