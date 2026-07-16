@@ -166,13 +166,12 @@ float patternMask(vec2 uv) {
   }
   vec2 f = fract(p) - 0.5;
   float a = atan(f.x, f.y);
-  float r = 3.14159 / 5.0;
-  float st = floor(a / r + 0.5);
-  float a1 = st * r;
-  vec2 sc = vec2(sin(a1), cos(a1));
-  vec2 sc2 = vec2(sin(a1 + r * 2.0), cos(a1 + r * 2.0));
-  float d = max(dot(f, sc), dot(f, sc2));
-  return 1.0 - smoothstep(th * 0.5 - aa, th * 0.5 + aa, abs(d - 0.2));
+  float r = 6.2831853 / 5.0;
+  float segment = mod(a + r * 0.5, r) - r * 0.5;
+  float py = length(f) * cos(segment);
+  float px = length(f) * sin(segment);
+  float d = abs(abs(px) * 3.0 + py - 0.35);
+  return 1.0 - smoothstep(th * 0.5 - aa, th * 0.5 + aa, d * 0.35);
 }
 
 vec3 sampleScene(vec2 uv, float blur) {
