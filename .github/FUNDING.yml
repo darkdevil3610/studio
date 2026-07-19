@@ -1,8 +1,5 @@
 # Adds a "Sponsor" button to the top of the repo + the sidebar.
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
+github: [zoxilsi]
 buy_me_a_coffee: hizoxilsij
-custom: ["https://studio.zoxilsi.cc"]
-
-# Uncomment once your GitHub Sponsors profile is approved:
-# github: [zoxilsi]
