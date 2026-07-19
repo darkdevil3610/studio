@@ -63,7 +63,10 @@ export function PresetsRail() {
     setUserPresets(loadUserPresets());
     setSaving(false);
   };
-  const removePreset = (e: React.MouseEvent, id: string) => {
+  const removePreset = (
+    e: React.MouseEvent | React.KeyboardEvent,
+    id: string
+  ) => {
     e.stopPropagation();
     deleteUserPreset(id);
     setUserPresets(loadUserPresets());
@@ -141,15 +144,22 @@ export function PresetsRail() {
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {userPresets.map((preset, i) => (
-                    <motion.button
+                    <motion.div
                       key={preset.id}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(i * 0.02, 0.3), duration: 0.25 }}
                       whileHover={{ y: -2, scale: 1.03 }}
                       whileTap={{ scale: 0.96 }}
                       onClick={() => applyPreset(preset.doc)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          applyPreset(preset.doc);
+                        }
+                      }}
                       className={cn(
                         "group relative h-20 cursor-pointer overflow-hidden rounded-lg border border-glass-border shadow-sm outline-none transition-shadow hover:shadow-lift",
                         "focus-visible:ring-2 focus-visible:ring-focus"
@@ -170,15 +180,23 @@ export function PresetsRail() {
                       <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/55 to-transparent px-2 pb-1 pt-3 text-left text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
                         {preset.name}
                       </span>
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => removePreset(e, preset.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removePreset(e, preset.id);
+                          }
+                        }}
                         aria-label={`Delete preset ${preset.name}`}
                         className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/45 text-white opacity-0 outline-none transition-opacity hover:bg-black/70 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-focus group-hover:opacity-100"
                       >
                         <TrashIcon className="h-3 w-3" />
-                      </button>
-                    </motion.button>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
