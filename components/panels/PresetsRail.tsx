@@ -45,11 +45,15 @@ export function PresetsRail() {
   }, [open]);
 
   useEffect(() => {
-    // Rasterize lazily after mount so SSR/hydration stay clean.
-    const t: Record<string, string> = {};
-    for (const p of PRESETS) t[p.id] = renderThumbnail(p.doc, 128, 96);
-    for (const p of userPresets) t[p.id] = renderThumbnail(p.doc, 128, 96);
-    setThumbs(t);
+    // Rasterize lazily after mount so SSR/hydration stay clean. Reuse
+    // already-rasterized thumbnails so saving/deleting a user preset doesn't
+    // re-rasterize the entire built-in library.
+    setThumbs((prev) => {
+      const next: Record<string, string> = {};
+      for (const p of PRESETS) next[p.id] = prev[p.id] ?? renderThumbnail(p.doc, 128, 96);
+      for (const p of userPresets) next[p.id] = prev[p.id] ?? renderThumbnail(p.doc, 128, 96);
+      return next;
+    });
   }, [userPresets]);
 
   const beginSave = () => {
