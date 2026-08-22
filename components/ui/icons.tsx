@@ -87,6 +87,9 @@ export const CheckIcon = (p: SVGProps<SVGSVGElement>) => (
 export const CopyIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" /><path d="M10.5 5.5v-2a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2" /></Icon>
 );
+export const HistoryIcon = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}><path d="M3 8a5 5 0 1 1 1.6 3.7" /><path d="M3 5v3.5h3.5" /><path d="M8 5v3.2l2.2 1.3" /></Icon>
+);
 export const FilmIcon = (p: SVGProps<SVGSVGElement>) => (
   <Icon {...p}><rect x="2" y="3" width="12" height="10" rx="1.5" /><path d="M5 3v10M11 3v10M2 6h3M2 10h3M11 6h3M11 10h3" /></Icon>
 );

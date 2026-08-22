@@ -6,6 +6,7 @@
 
 import { Segmented } from "@/components/ui/Segmented";
 import { Slider } from "@/components/ui/Slider";
+import { RecentColors } from "@/components/ui/RecentColors";
 import { useMeshStore } from "@/store/meshStore";
 import type { ColorSpace } from "@/types/gradient";
 
@@ -63,6 +64,7 @@ export function ColorSection() {
         onChange={(brightness) => updateEffects({ brightness })}
         onCommitStart={commit}
       />
+      <RecentColors />
     </>
   );
 }
