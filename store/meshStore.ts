@@ -25,6 +25,7 @@ import {
 } from "@/lib/mesh";
 import { randomPalette, hslToHex } from "@/lib/color";
 import { createRng, valueNoise2 } from "@/lib/noise";
+import { useRecentColors } from "./recentColors";
 
 const clone = (doc: MeshDoc): MeshDoc => structuredClone(doc);
 
@@ -271,5 +272,7 @@ export const useMeshStore = create<MeshStore>((set, get) => ({
       },
     }));
     set({ doc: { ...doc, rows, cols, nodes }, selectedId: null });
+    const recents = useRecentColors.getState();
+    for (const n of nodes) recents.push(n.color);
   },
 }));

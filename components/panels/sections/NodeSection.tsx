@@ -9,6 +9,7 @@
 import { Button } from "@/components/ui/Button";
 import { ColorField } from "@/components/ui/ColorField";
 import { useMeshStore } from "@/store/meshStore";
+import { useRecentColors } from "@/store/recentColors";
 import { slotPosition, relayoutNodes } from "@/lib/mesh";
 import { clamp } from "@/lib/utils";
 import type { MeshDoc, Vec2 } from "@/types/gradient";
@@ -134,6 +135,7 @@ export function NodeSection() {
         value={node.color}
         onChange={(color) => setNodeColor(node.id, color)}
         onCommitStart={commit}
+        onCommitEnd={(color) => useRecentColors.getState().push(color)}
       />
 
       <div className="flex flex-col gap-1.5">

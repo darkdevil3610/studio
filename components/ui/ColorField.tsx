@@ -16,6 +16,8 @@ interface ColorFieldProps {
   value: string;
   onChange: (hex: string) => void;
   onCommitStart?: () => void;
+  /** Fired once when an edit settles (blur, Enter, eyedropper, picker release). */
+  onCommitEnd?: (hex: string) => void;
   className?: string;
 }
 
@@ -46,7 +48,7 @@ function hsvToHex(h: number, s: number, v: number): string {
 
 /* ------------------------------- component ------------------------------- */
 
-export function ColorField({ label, value, onChange, onCommitStart, className }: ColorFieldProps) {
+export function ColorField({ label, value, onChange, onCommitStart, onCommitEnd, className }: ColorFieldProps) {
   const [draft, setDraft] = useState(value);
   const [open, setOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0 });
@@ -131,6 +133,7 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
     if (hex.toLowerCase() !== value.toLowerCase()) {
       onCommitStart?.();
       onChange(hex.toLowerCase());
+      onCommitEnd?.(hex.toLowerCase());
     }
   };
 
@@ -139,7 +142,9 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
     onChange(hsvToHex(h, s, v));
   };
 
-  /** Shared drag plumbing for the SV square and hue strip. */
+    /** Shared drag plumbing for the SV square and hue strip. */
+  const [h, s, v] = hsv;
+  const hueColor = hsvToHex(h, 1, 1);
   const dragArea = (update: (nx: number, ny: number) => void) => ({
     onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -164,11 +169,10 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
       e.currentTarget.releasePointerCapture(e.pointerId);
       picking.current = false;
       gestureCommitted.current = false;
+      onCommitEnd?.(hsvToHex(...hsv));
     },
   });
 
-  const [h, s, v] = hsv;
-  const hueColor = hsvToHex(h, 1, 1);
 
   const eyedrop = async () => {
     // Chromium-only EyeDropper API; quietly unavailable elsewhere.
@@ -178,6 +182,7 @@ export function ColorField({ label, value, onChange, onCommitStart, className }:
       beginGesture();
       const res = await new ED().open();
       onChange(res.sRGBHex.toLowerCase());
+      onCommitEnd?.(res.sRGBHex.toLowerCase());
       gestureCommitted.current = false;
     } catch {
       /* cancelled */
