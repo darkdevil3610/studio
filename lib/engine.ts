@@ -141,6 +141,9 @@ class Engine {
       // Hue flow integrates its rate per-frame, so the slider acts as a
       // live speed control and never rotates hues while paused.
       this.flowTime += dt * animation.speed * dir * (animation.hueFlow ?? 0);
+	} else {
+		// 	On animation pause hue flow resets and points turn back to their original colors.
+		this.flowTime = 0;
     }
 
     const n = Math.min(doc.nodes.length, MAX_NODES);
